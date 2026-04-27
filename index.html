@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FG PROMO/FÚTBOL</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; }
+       .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 30px 20px; background: #1a1a2e; border-bottom: 3px solid #4a9eff; }
+       .logo { max-width: 180px; margin: 0 auto 20px; }
+       .logo img { width: 100%; border-radius: 50%; border: 3px solid #4a9eff; }
+        h1 { color: #4a9eff; font-size: 2.2em; }
+       .btn { background: #4a9eff; color: #000; padding: 12px 25px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; margin: 8px 5px; display: inline-block; text-decoration: none; }
+       .btn-red { background: #ff4a4a; color: #fff; }
+       .section { background: #1a1a1a; margin: 25px 0; padding: 25px; border-radius: 15px; }
+        h2 { color: #4a9eff; margin-bottom: 20px; }
+       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+       .card { background: #0a0a0a; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
+       .card img { width: 100%; height: 200px; object-fit: cover; }
+       .card-body { padding: 15px; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; background: #0a0a0a; border: 1px solid #333; border-radius: 8px; color: #fff; }
+        #adminPanel { display: none; background: #2a1a1a; border: 3px solid #ff4a4a; }
+       .delete-btn { background: #ff4a4a; color: #fff; padding: 5px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        footer { text-align: center; padding: 40px 20px; color: #666; }
+       .loading { text-align: center; padding: 40px; color: #4a9eff; }
+       .status { background: #1a4a1a; padding: 10px; border-radius: 8px; margin-bottom: 20px; color: #4aff4a; text-align: center; }
+    </style>
+<link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
+    <link rel="apple-touch-icon" href="icon-192.png">S
+</head>
+<body>
+    <div id="loginScreen" style="text-align:center;padding:50px 20px;">
+        <div class="logo"><img src="https://i.ibb.co/R40G6cqS/671605589-931471963012604-7462941038991069493-n.jpg"></div>
+        <h1>FG PROMO/FÚTBOL</h1>
+        <p style="color:#c0c0c0;margin:15px 0;">Agencia de Talento</p>
+        <input type="password" id="passInput" placeholder="Contraseña Admin" style="max-width:300px;margin:20px auto;">
+        <br>
+        <button class="btn" onclick="checkPass()">ENTRAR COMO ADMIN</button>
+        <br><br>
+        <button class="btn" onclick="enterPublic()" style="background:#666;">VER COMO JUGADOR</button>
+    </div>
+    <div id="mainApp" style="display:none;">
+        <header>
+            <div class="logo"><img src="https://i.ibb.co/R40G6cqS/671605589-931471963012604-7462941038991069493-n.jpg"></div>
+            <h1>FG PROMO/FÚTBOL</h1>
+            <p>Formación y Proyección de Jugadores</p>
+            <a href="#afiliacion" class="btn btn-red">QUIERO UNIRME</a>
+            <button id="logoutBtn" class="btn" onclick="logout()" style="display:none;background:#ff4a4a;">SALIR ADMIN</button>
+        </header>
+        <div class="container">
+            <div id="adminPanel" class="section">
+                <div class="status">✅ Conectado a Firebase - Los datos NO se borran y se ven en todos lados</div>
+                <h2>🔓 PANEL ADMIN</h2>
+                <h3>Agregar Jugador</h3>
+                <input type="file" id="playerPhoto" accept="image/*">
+                <input type="text" id="playerName" placeholder="Nombre Completo" required>
+                <select id="playerPosition" required>
+                    <option value="">Posición...</option>
+                    <option>Portero</option><option>Defensa</option><option>Lateral</option>
+                    <option>Mediocampista</option><option>Delantero</option>
+                </select>
+                <input type="number" id="playerAge" placeholder="Edad" required>
+                <input type="text" id="playerClub" placeholder="Club Actual">
+                <textarea id="playerBio" rows="2" placeholder="Stats/Bio"></textarea>
+                <input type="url" id="playerVideo" placeholder="Link YouTube/Instagram">
+                <button class="btn" onclick="savePlayer()">GUARDAR JUGADOR</button>
+                <h3 style="margin-top:30px;">Publicar Noticia</h3>
+                <input type="text" id="newsTitle" placeholder="Título" required>
+                <input type="file" id="newsImage" accept="image/*">
+                <textarea id="newsText" rows="4" placeholder="Texto de la noticia" required></textarea>
+                <button class="btn" onclick="saveNews()">PUBLICAR NOTICIA</button>
+            </div>
+            <section class="section">
+                <h2>⚽ NUESTROS JUGADORES</h2>
+                <div class="loading" id="playersLoading">Cargando jugadores...</div>
+                <div class="grid" id="playersGrid"></div>
+            </section>
+            <section class="section">
+                <h2>📰 ÚLTIMAS NOTICIAS</h2>
+                <div class="loading" id="newsLoading">Cargando noticias...</div>
+                <div id="newsList"></div>
+            </section>
+            <section class="section" id="afiliacion">
+                <h2>📝 SOLICITUD DE AFILIACIÓN</h2>
+                <form onsubmit="submitAffiliate(event)">
+                    <input type="text" id="affName" placeholder="Nombre Completo *" required>
+                    <input type="number" id="affAge" placeholder="Edad *" required>
+                    <select id="affPosition" required>
+                        <option value="">Posición *</option>
+                        <option>Portero</option><option>Defensa</option><option>Lateral</option>
+                        <option>Mediocampista</option><option>Delantero</option>
+                    </select>
+                    <input type="text" id="affCity" placeholder="Ciudad *" required>
+                    <input type="tel" id="affPhone" placeholder="WhatsApp *" required>
+                    <textarea id="affExp" rows="2" placeholder="Experiencia/Club Actual"></textarea>
+                    <input type="url" id="affVideo" placeholder="Link de Video">
+                    <button type="submit" class="btn btn-red">ENVIAR POR WHATSAPP</button>
+                </form>
+            </section>
+            <section class="section">
+                <h2>📞 CONTACTO</h2>
+                <p><strong>Email:</strong> fgpromofutbol@gmail.com</p>
+                <p><strong>WhatsApp:</strong> +52 783 146 8922</p>
+                <a href="https://wa.me/527831468922" class="btn" target="_blank">Chatear por WhatsApp</a>
+            </section>
+        </div>
+        <footer><p>© 2026 FG PROMO/FÚTBOL</p></footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // TU CONFIG DE FIREBASE YA PUESTA
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwz225lJyIu7esWwJ_evSAnGxmxHrAMuI",
+            authDomain: "fg-promo.firebaseapp.com",
+            projectId: "fg-promo",
+            storageBucket: "fg-promo.firebasestorage.app",
+            messagingSenderId: "144946776611",
+            appId: "1:144946776611:web:01515721135eb9fd9bff96"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const PASS = "fg2026";
+        let isAdmin = false;
+
+        window.checkPass = function() {
+            if (document.getElementById('passInput').value === PASS) {
+                isAdmin = true;
+                startApp();
+            } else {
+                alert('Contraseña incorrecta');
+            }
+        }
+
+        window.enterPublic = function() {
+            isAdmin = false;
+            startApp();
+        }
+
+        function startApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            if (isAdmin) {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+            }
+            loadPlayers();
+            loadNews();
+        }
+
+        window.logout = function() {
+            location.reload();
+        }
+
+        window.savePlayer = async function() {
+            const photo = document.getElementById('playerPhoto').files[0];
+            const process = async (img = 'https://via.placeholder.com/300x200/1a1a1a/4a9eff?text=Sin+Foto') => {
+                try {
+                    await addDoc(collection(db, "players"), {
+                        photo: img,
+                        name: document.getElementById('playerName').value,
+                        position: document.getElementById('playerPosition').value,
+                        age: document.getElementById('playerAge').value,
+                        club: document.getElementById('playerClub').value,
+                        bio: document.getElementById('playerBio').value,
+                        video: document.getElementById('playerVideo').value,
+                        createdAt: Date.now()
+                    });
+                    loadPlayers();
+                    alert('Jugador guardado en Firebase ✅ Ya no se borra');
+                    document.getElementById('playerName').value = '';
+                    document.getElementById('playerPhoto').value = '';
+                    document.getElementById('playerPosition').value = '';
+                    document.getElementById('playerAge').value = '';
+                    document.getElementById('playerClub').value = '';
+                    document.getElementById('playerBio').value = '';
+                    document.getElementById('playerVideo').value = '';
+                } catch (e) {
+                    alert('Error al guardar: ' + e.message);
+                }
+            };
+            if (photo) {
+                const r = new FileReader();
+                r.onload = e => process(e.target.result);
+                r.readAsDataURL(photo);
+            } else { process(); }
+        }
+
+        async function loadPlayers() {
+            document.getElementById('playersLoading').style.display = 'block';
+            try {
+                const q = query(collection(db, "players"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                const players = [];
+                querySnapshot.forEach((doc) => {
+                    players.push({ id: doc.id,...doc.data() });
+                });
+                document.getElementById('playersGrid').innerHTML = players.map(p => `
+                    <div class="card">
+                        <img src="${p.photo}">
+                        <div class="card-body">
+                            <h3>${p.name}</h3>
+                            <p><strong>${p.position}</strong> | ${p.age} años</p>
+                            <p>${p.club || ''}</p>
+                            <p style="font-size:0.9em;color:#c0c0c0;">${p.bio || ''}</p>
+                            ${p.video? `<a href="${p.video}" target="_blank" class="btn" style="padding:6px 15px;">Ver Highlights</a>` : ''}
+                            ${isAdmin? `<button class="delete-btn" onclick="deletePlayer('${p.id}')">Eliminar</button>` : ''}
+                        </div>
+                    </div>
+                `).join('') || '<p style="color:#888;">No hay jugadores aún. Agrega el primero.</p>';
+            } catch (e) {
+                document.getElementById('playersGrid').innerHTML = '<p style="color:#ff4a4a;">Error: Activa Firestore en Firebase</p>';
+            }
+            document.getElementById('playersLoading').style.display = 'none';
+        }
+
+        window.deletePlayer = async function(id) {
+            if (confirm('¿Eliminar jugador?')) {
+                await deleteDoc(doc(db, "players", id));
+                loadPlayers();
+            }
+        }
+
+        window.saveNews = async function() {
+            const image = document.getElementById('newsImage').files[0];
+            const process = async (img = '') => {
+                try {
+                    await addDoc(collection(db, "news"), {
+                        title: document.getElementById('newsTitle').value,
+                        image: img,
+                        text: document.getElementById('newsText').value,
+                        date: new Date().toLocaleDateString('es-MX'),
+                        createdAt: Date.now()
+                    });
+                    loadNews();
+                    alert('Noticia publicada en Firebase ✅');
+                    document.getElementById('newsTitle').value = '';
+                    document.getElementById('newsText').value = '';
+                    document.getElementById('newsImage').value = '';
+                } catch (e) {
+                    alert('Error: ' + e.message);
+                }
+            };
+            if (image) {
+                const r = new FileReader();
+                r.onload = e => process(e.target.result);
+                r.readAsDataURL(image);
+            } else { process(); }
+        }
+
+        async function loadNews() {
+            document.getElementById('newsLoading').style.display = 'block';
+            try {
+                const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                const news = [];
+                querySnapshot.forEach((doc) => {
+                    news.push({ id: doc.id,...doc.data() });
+                });
+                document.getElementById('newsList').innerHTML = news.map(n => `
+                    <div style="background:#0a0a0a;padding:20px;margin:15px 0;border-radius:10px;border-left:3px solid #4a9eff;">
+                        <h3>${n.title}</h3>
+                        <p style="color:#888;font-size:0.9em;">${n.date}</p>
+                        ${n.image? `<img src="${n.image}" style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin:10px 0;">` : ''}
+                        <p>${n.text}</p>
+                        ${isAdmin? `<button class="delete-btn" onclick="deleteNews('${n.id}')">Eliminar</button>` : ''}
+                    </div>
+                `).join('') || '<p style="color:#888;">No hay noticias aún.</p>';
+            } catch (e) {
+                document.getElementById('newsList').innerHTML = '<p style="color:#ff4a4a;">Error: Activa Firestore en Firebase</p>';
+            }
+            document.getElementById('newsLoading').style.display = 'none';
+        }
+
+        window.deleteNews = async function(id) {
+            if (confirm('¿Eliminar noticia?')) {
+                await deleteDoc(doc(db, "news", id));
+                loadNews();
+            }
+        }
+
+        window.submitAffiliate = function(e) {
+            e.preventDefault();
+            const msg = `*Nueva Solicitud FG PROMO*%0A%0ANombre: ${affName.value}%0AEdad: ${affAge.value}%0APosición: ${affPosition.value}%0ACiudad: ${affCity.value}%0AWhatsApp: ${affPhone.value}%0AExperiencia: ${affExp.value}%0AVideo: ${affVideo.value}`;
+            window.open(`https://wa.me/527831468922?text=${msg}`, '_blank');
+            e.target.reset();
+            alert('Solicitud enviada');
+        }
+    </script>
+</body>
+</html>
